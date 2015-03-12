@@ -1,0 +1,128 @@
+[
+  {
+    "year": 2015,
+    "month": 2,
+    "day": 20,
+    "type": "solar"
+  },
+  {
+    "year": 2015,
+    "month": 8,
+    "day": 28,
+    "type": "lunar"
+  },
+  {
+    "year": 2016,
+    "month": 2,
+    "day": 8,
+    "type": "solar"
+  },
+  {
+    "year": 2016,
+    "month": 8,
+    "day": 1,
+    "type": "solar"
+  },
+  {
+    "year": 2017,
+    "month": 1,
+    "day": 22,
+    "type": "solar"
+  },
+  {
+    "year": 2017,
+    "month": 7,
+    "day": 21,
+    "type": "solar"
+  },
+  {
+    "year": 2018,
+    "month": 0,
+    "day": 31,
+    "type": "lunar"
+  },
+  {
+    "year": 2018,
+    "month": 6,
+    "day": 27,
+    "type": "lunar"
+  },
+  {
+    "year": 2019,
+    "month": 0,
+    "day": 21,
+    "type": "lunar"
+  },
+  {
+    "year": 2019,
+    "month": 6,
+    "day": 2,
+    "type": "solar"
+  },
+  {
+    "year": 2019,
+    "month": 11,
+    "day": 26,
+    "type": "solar"
+  },
+  {
+    "year": 2020,
+    "month": 5,
+    "day": 21,
+    "type": "solar"
+  },
+  {
+    "year": 2020,
+    "month": 11,
+    "day": 14,
+    "type": "solar"
+  },
+  {
+    "year": 2021,
+    "month": 5,
+    "day": 10,
+    "type": "solar"
+  },
+  {
+    "year": 2021,
+    "month": 11,
+    "day": 4,
+    "type": "solar"
+  },
+  {
+    "year": 2022,
+    "month": 4,
+    "day": 16,
+    "type": "lunar"
+  },
+  {
+    "year": 2022,
+    "month": 10,
+    "day": 8,
+    "type": "lunar"
+  },
+  {
+    "year": 2023,
+    "month": 3,
+    "day": 20,
+    "type": "solar"
+  },
+  {
+    "year": 2023,
+    "month": 9,
+    "day": 14,
+    "type": "solar"
+  },
+  {
+    "year": 2024,
+    "month": 3,
+    "day": 8,
+    "type": "solar"
+  },
+  {
+    "year": 2024,
+    "month": 9,
+    "day": 2,
+    "type": "solar"
+  }
+]

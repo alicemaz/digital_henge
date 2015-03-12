@@ -1,0 +1,18 @@
+{
+  "name": "moon",
+  "version": "1.0.0",
+  "description": "",
+  "main": "moon.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "alice-maz",
+  "license": "MIT",
+  "engines": {
+	  "node": "0.10.36"
+  },
+  "dependencies": {
+    "fs": "0.0.2",
+    "twit": "^1.1.20"
+  }
+}
