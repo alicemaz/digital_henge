@@ -1,5 +1,5 @@
 var fs = require("fs");
-var api_stuff = JSON.parse(fs.readFileSync("config.json", "utf8"));
+var api_stuff = JSON.parse(fs.readFileSync(__dirname + "/config.json", "utf8"));
 
 var Twit = require("twit");
 var T = new Twit(
@@ -32,9 +32,9 @@ var earth_emoji = "\uD83C\uDF0E";
 
 //these are arrays of objects, eg seasons[3].day
 //fields: year, month, day (ints) / type ("lunar" or "solar", only for eclipses)
-var seasons = JSON.parse(fs.readFileSync("seasons.json", "utf8"));
-var eclipses = JSON.parse(fs.readFileSync("eclipses.json", "utf8"));
-var zodiac = JSON.parse(fs.readFileSync("zodiac.json", "utf8"));
+var seasons = JSON.parse(fs.readFileSync(__dirname + "/seasons.json", "utf8"));
+var eclipses = JSON.parse(fs.readFileSync(__dirname + "/eclipses.json", "utf8"));
+var zodiac = JSON.parse(fs.readFileSync(__dirname + "/zodiac.json", "utf8"));
 
 //and just a simple global for the tweet, my functions possibly put stuff in it, main method tweets if !== ""
 var final_tweet = "";
