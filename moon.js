@@ -1,12 +1,13 @@
 var fs = require("fs");
-var Twit = require("twit");
+var api_stuff = JSON.parse(fs.readFileSync("config.json", "utf8"));
 
+var Twit = require("twit");
 var T = new Twit(
 {
-	consumer_key: process.env.CKEY,
-	consumer_secret: process.env.CSEC,
-	access_token: process.env.ATOK,
-	access_token_secret: process.env.TSEC
+	consumer_key: api_stuff.key,
+	consumer_secret: api_stuff.secret,
+	access_token: api_stuff.token,
+	access_token_secret: api_stuff.token_secret
 })
 
 //current date/time
@@ -153,22 +154,23 @@ function test_local()
 
 //just call this every time the script runs, most times it won't do anything
 //the reason for this terrible method is Heroku's scheduler doesn't let you schedule jobs, so I have to run it hourly
+//the new reason now that I'm running everything off my own machine is that I don't feel like refactoring it
 function try_everything()
 {
 	final_tweet = "";
 
 	switch(d.getHours())
-	{
-		case 13:
-			check_eclipse();
-			break;
-		case 15:
+	{		
+		case 10:
 			check_zodiac();
 			break;
-		case 17:
+		case 12:
 			check_season();
 			break;
-		case 22:
+		case 15:
+			check_eclipse();
+			break;
+		case 20:
 			check_moon();
 			break;
 	}
