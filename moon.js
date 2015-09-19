@@ -12,6 +12,8 @@ var T = new Twit(
 
 //current date/time
 var d = new Date();
+//d.setDate(d.getDate()-1);
+//console.log(d);
 
 //array indexed 0-7 starting with new, corresponds to moon_phase function
 var phases_emoji =
