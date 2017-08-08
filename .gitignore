@@ -1,6 +1,6 @@
-node_modules/
-config.json
+dist/
+.cabal-sandbox/
+cabal.sandbox.config
 *~
 *.swp
 *.swo
-*.log
