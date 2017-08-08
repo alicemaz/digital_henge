@@ -5,7 +5,7 @@ import Data.Maybe
 import System.Environment
 import System.Console.GetOpt
 
-import Events
+import Season
 
 data Flag = Mode ModeType | Print deriving (Show, Eq)
 data ModeType = Moon | Eclipse | Season | Zodiac deriving (Show, Eq)
@@ -41,6 +41,4 @@ main :: IO ()
 main = do
     --argv <- getArgs
     --runmode <- processArgs argv
-    let jd = computeSeason Winter 2029
-    putStrLn $ show jd
-    putStrLn $ show $ jdToDate jd
+    putStrLn $ show $ checkSeason 2021 3 20
