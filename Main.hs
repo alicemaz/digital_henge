@@ -5,6 +5,8 @@ import Data.Maybe
 import System.Environment
 import System.Console.GetOpt
 
+import Events
+
 data Flag = Mode ModeType | Print deriving (Show, Eq)
 data ModeType = Moon | Eclipse | Season | Zodiac deriving (Show, Eq)
 type RunMode = (ModeType, Bool)
@@ -37,6 +39,8 @@ processArgs argv = case getOpt Permute options argv of
 
 main :: IO ()
 main = do
-    argv <- getArgs
-    runmode <- processArgs argv
-    putStrLn $ show runmode
+    --argv <- getArgs
+    --runmode <- processArgs argv
+    let jd = computeSeason Winter 2029
+    putStrLn $ show jd
+    putStrLn $ show $ jdToDate jd
