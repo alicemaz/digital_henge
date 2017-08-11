@@ -1,4 +1,4 @@
-module Season (checkSeason, SeasonType (..), computeSeason, jdToDate) where
+module Season (checkSeason) where
 
 import Data.Angle
 import Control.Lens.Operators ((%~), (&), (^.))
