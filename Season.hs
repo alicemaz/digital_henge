@@ -19,7 +19,8 @@ checkSeason y m d
     | m == 9 && f Fall = Just (sun ++ "\n" ++ earth)
     | m == 12 && f Winter = Just (sun ++ earth)
     | otherwise = Nothing
-        where f s = ((jdToDate $ computeSeason s y) ^. _3 & floor) == fromIntegral d
+        where dt = deltaT y
+              f s = ((jdToDate (computeSeason s y - dt)) ^. _3 & floor) == fromIntegral d
 
 seasonTerms :: [(Double, Double, Double)]
 seasonTerms =
@@ -40,6 +41,7 @@ baseJDE Summer y = 2451716.56767 + 365241.62603*y + 0.00325*y^2 + 0.00888*y^3 - 
 baseJDE Fall y   = 2451810.21715 + 365242.01767*y - 0.11575*y^2 + 0.00337*y^3 + 0.00078*y^4
 baseJDE Winter y = 2451900.05952 + 365242.74049*y - 0.06223*y^2 - 0.00823*y^3 + 0.00032*y^4
 
+-- note this returns ephemeris time
 computeSeason :: Integral a => SeasonType -> a -> Double
 computeSeason e y = j0 + 0.00001*s / dl
     where y' = (fromIntegral y - 2000) / 1000
