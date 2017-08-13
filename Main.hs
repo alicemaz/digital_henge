@@ -6,6 +6,8 @@ import System.Environment
 import System.Console.GetOpt
 
 import Season
+import Zodiac
+import Moon
 
 data Flag = Mode ModeType | Print deriving (Show, Eq)
 data ModeType = Moon | Eclipse | Season | Zodiac deriving (Show, Eq)
@@ -37,8 +39,19 @@ processArgs argv = case getOpt Permute options argv of
                             p = isJust $ find (== Print) o
     (_, _, e) -> ioError $ userError $ concat e ++ usageInfo header options
 
+simpl a
+    | a < 0 = a + n
+    | a > 360 = a - n
+    | otherwise = a
+        where n = fromIntegral $ 360 * (abs $ floor $ a / 360)
+
 main :: IO ()
 main = do
     --argv <- getArgs
     --runmode <- processArgs argv
-    putStrLn $ show $ checkSeason 2021 3 20
+    putStrLn $ "season: " ++ show (checkSeason 2021 3 20)
+    putStrLn $ "zodiac: " ++ show (checkZodiac 2017 3 21)
+    let (x, y, z) = moonPos 2448724.5
+    putStrLn $ "longitude: " ++ show (simpl x)
+    putStrLn $ "latitude: " ++ show y
+    putStrLn $ "distance: " ++ show z

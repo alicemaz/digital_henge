@@ -20,7 +20,6 @@ executable henge
   -- other-modules:       
   -- other-extensions:    
   build-depends:       base >=4.9 && <4.10,
-                       AC-Angle == 1.0,
                        lens == 4.15.*,
                        tuple == 0.3.0.*
   -- hs-source-dirs:      

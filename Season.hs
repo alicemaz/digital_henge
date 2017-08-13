@@ -1,10 +1,10 @@
 module Season (checkSeason) where
 
-import Data.Angle
 import Control.Lens.Operators ((%~), (&), (^.))
 import Control.Lens.Tuple
 
 import Emoji (sun, earth)
+import Util
 
 data SeasonType = Spring | Summer | Fall | Winter deriving (Show, Eq)
 
@@ -45,9 +45,9 @@ computeSeason e y = j0 + 0.00001*s / dl
     where y' = (fromIntegral y - 2000) / 1000
           j0 = baseJDE e y'
           t = (j0 - 2451545) / 36525
-          w = Degrees $ 35999.373*t - 2.47
-          dl = 1 + 0.0334*cosine w + 0.0007*cosine (2*w)
-          s = sum $ (\(a, b, c) -> a*cosine (Degrees $ b + c*t)) <$> seasonTerms
+          w = 35999.373*t - 2.47
+          dl = 1 + 0.0334*cos' w + 0.0007*cos' (2*w)
+          s = sum $ (\(a, b, c) -> a*cos' (b + c*t)) <$> seasonTerms
 
 jdToDate :: (Num a, RealFrac a, Integral b) => a -> (b, b, a)
 jdToDate j = (year, month, day)

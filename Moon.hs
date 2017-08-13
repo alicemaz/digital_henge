@@ -1,11 +1,9 @@
 module Moon (moonPos) where
 
-import Data.Angle
 import Data.Tuple.Curry
 
-import Debug.Trace
+import Util
 
--- yeesh. 
 -- so l' is mean longitude
 -- d is mean elongation
 -- m is sun's mean anomoly
@@ -14,30 +12,30 @@ import Debug.Trace
 -- and m must be scaled by e to take into account eccentricity of earth's orbit
 -- further corrections are made to the sums to account for action of venus and jupiter
 -- returns longitude and latitude in degrees and distance in km
-moonPos :: Double -> (Degrees Double, Degrees Double, Double)
-moonPos jde = (Degrees $ l' + l/1000000, Degrees $ b/1000000, 385000.56 + r/1000)
+moonPos :: Double -> (Double, Double, Double)
+moonPos jde = (l' + l/1000000, b/1000000, 385000.56 + r/1000)
     where t = (jde - 2451545) / 36525
           l' = 218.3164591 + 481267.88134236*t - 0.0013268*t^2 + t^3/538841 - t^4/65194000
           d = 297.8502042 + 445267.1115168*t - 0.00163*t^2 + t^3/545868 - t^4/113065000
           m = 357.5291092 + 35999.0502909*t - 0.0001536*t^2 + t^3/24490000
           m' = 134.9634114 + 477198.8676313*t + 0.0089970*t^2 + t^3/69699 - t^4/14712000
           f = 93.2720993 + 483202.0175273*t - 0.0034029*t^2 -t^3/3526000 + t^4/863310000
-          a1 = Degrees $ 119.75 + 131.849*t
-          a2 = Degrees $ 53.09 + 479264.290*t
-          a3 = Degrees $ 313.45 + 481266.484*t
-          ls = (uncurryN $ computeTerm sine t d m m' f) <$> longTermCoeffs
-          l = sum ls + 3958*sine a1 + 1962*sine (Degrees $ l' - f) + 318*sine a2
-          bs = (uncurryN $ computeTerm sine t d m m' f) <$> latTermCoeffs
-          b = sum bs - 2235*sine (Degrees l') + 382*sine a3 + 175*sine (a1 - Degrees f) + 175*sine (a1 + Degrees f)
-              + 127*sine (Degrees $ l' - m') - 115*sine (Degrees $ l' + m')
-          r = sum $ (uncurryN $ computeTerm cosine t d m m' f) <$> distTermCoeffs
+          a1 = 119.75 + 131.849*t
+          a2 = 53.09 + 479264.290*t
+          a3 = 313.45 + 481266.484*t
+          ls = (uncurryN $ computeTerm sin' t d m m' f) <$> longTermCoeffs
+          l = sum ls + 3958*sin' a1 + 1962*sin' (l' - f) + 318*sin' a2
+          bs = (uncurryN $ computeTerm sin' t d m m' f) <$> latTermCoeffs
+          b = sum bs - 2235*sin' l' + 382*sin' a3 + 175*sin' (a1 - f) + 175*sin' (a1 + f)
+              + 127*sin' (l' - m') - 115*sin' (l' + m')
+          r = sum $ (uncurryN $ computeTerm cos' t d m m' f) <$> distTermCoeffs
 
 computeTerm w t d m m' f cd cm cm' cf c
     | abs cm == 1 = e * s
     | abs cm == 2 = e^2 * s
     | otherwise = s
         where e = 1 - 0.002516*t - 0.0000074*t^2
-              s = c * w (Degrees $ cd*d + cm*m + cm'*m' + cf*f)
+              s = c * w (cd*d + cm*m + cm'*m' + cf*f)
 
 (longTermCoeffs, distTermCoeffs) = (g longCoeffs, g distCoeffs)
     where g = foldr f [] . zip longDistTerms
