@@ -30,6 +30,9 @@ moonPos jde = (l' + l/1000000, b/1000000, 385000.56 + r/1000)
               + 127*sin' (l' - m') - 115*sin' (l' + m')
           r = sum $ (uncurryN $ computeTerm cos' t d m m' f) <$> distTermCoeffs
 
+--lol
+computeTerm :: (Double -> Double) -> Double -> Double -> Double -> Double ->
+    Double -> Double -> Double -> Double -> Double -> Double -> Double
 computeTerm w t d m m' f cd cm cm' cf c
     | abs cm == 1 = e * s
     | abs cm == 2 = e^2 * s
@@ -37,11 +40,14 @@ computeTerm w t d m m' f cd cm cm' cf c
         where e = 1 - 0.002516*t - 0.0000074*t^2
               s = c * w (cd*d + cm*m + cm'*m' + cf*f)
 
+longTermCoeffs :: [(Double, Double, Double, Double, Double)]
+distTermCoeffs :: [(Double, Double, Double, Double, Double)]
 (longTermCoeffs, distTermCoeffs) = (g longCoeffs, g distCoeffs)
     where g = foldr f [] . zip longDistTerms
           f ((w, x, y, z), Just c) acc = (w, x, y, z, c) : acc
           f (_, Nothing) acc = acc
 
+latTermCoeffs :: [(Double, Double, Double, Double, Double)]
 latTermCoeffs =
  [
     (0, 0, 0, 1, 5128122), (0, 0, 1, 1, 280602), (0, 0, 1, -1, 277693), (2, 0, 0, -1, 173237), (2, 0, -1, 1, 55413),
@@ -58,7 +64,7 @@ latTermCoeffs =
     (1, 0, 1, -1, -164), (4, 0, 1, -1, 132), (1, 0, -1, -1, -119), (4, -1, 0, -1, 115), (2, -2, 0, 1, 107)
  ]
 
---longDistTerms :: [(Double, Double, Double, Double)]
+longDistTerms :: [(Double, Double, Double, Double)]
 longDistTerms =
  [
     (0, 0, 1, 0), (2, 0, -1, 0), (2, 0, 0, 0), (0, 0, 2, 0), (0, 1, 0, 0),
@@ -76,20 +82,14 @@ longDistTerms =
  ]
 
 longCoeffs :: [Maybe Double]
-longCoeffs =
+longCoeffs = Just <$>
  [
-    Just 6288774, Just 1274027, Just 658314, Just 213618, Just (-185116),
-    Just (-114332), Just 58793, Just 57066, Just 53322, Just 45758,
-    Just (-40923), Just (-34720), Just (-30383), Just 15327, Just (-12528),
-    Just 10980, Just 10675, Just 10034, Just 8548, Just (-7888),
-    Just (-6766), Just (-5163), Just 4987, Just 4036, Just 3994,
-    Just 3861, Just 3665, Just (-2689), Just (-2602), Just 2390,
-    Just (-2348), Just 2236, Just (-2120), Just (-2069), Just 2048,
-    Just (-1773), Just (-1595), Just 1215, Just (-1110), Just (-892),
-    Just (-810), Just 759, Just (-713), Just (-700), Just 691,
-    Just 596, Just 549, Just 537, Just 520, Just (-487),
-    Just (-399), Just (-381), Just 351, Just (-340), Just 330,
-    Just 327, Just (-323), Just 299, Just 294, Nothing
+    6288774, 1274027, 658314, 213618, -185116, -114332, 58793, 57066, 53322, 45758,
+    -40923, -34720, -30383, 15327, -12528, 10980, 10675, 10034, 8548, -7888,
+    -6766, -5163, 4987, 4036, 3994, 3861, 3665, -2689, -2602, 2390,
+    -2348, 2236, -2120, -2069, 2048, -1773, -1595, 1215, -1110, -892,
+    -810, 759, -713, -700, 691, 596, 549, 537, 520, -487,
+    -399, -381, 351, -340, 330, 327, -323, 299, 294
  ]
 
 distCoeffs :: [Maybe Double]
