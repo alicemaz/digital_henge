@@ -1,6 +1,6 @@
 module Season (checkSeason) where
 
-import Control.Lens.Operators ((%~), (&), (^.))
+import Control.Lens.Operators
 import Control.Lens.Tuple
 
 import Emoji (sun, earth)
@@ -48,19 +48,3 @@ computeSeason e y = j0 + 0.00001*s / dl
           w = 35999.373*t - 2.47
           dl = 1 + 0.0334*cos' w + 0.0007*cos' (2*w)
           s = sum $ (\(a, b, c) -> a*cos' (b + c*t)) <$> seasonTerms
-
-jdToDate :: (Num a, RealFrac a, Integral b) => a -> (b, b, a)
-jdToDate j = (year, month, day)
-    where (z, f) = _1 %~ fromIntegral $ properFraction $ j + 0.5
-          t = floor' $ (z - 1867216.25) / 36524.25
-          a = if z < 2299161 then z else z + 1 + t - floor' (t / 4)
-          b = a + 1524
-          c = floor' $ (b - 122.1) / 365.25
-          d = floor' $ 365.25*c
-          e = floor' $ (b - d) / 30.6001
-          day = b - d - floor' (30.6001*e) + f
-          month = floor $ if e < 14 then e - 1 else e - 13
-          year = floor $ if month > 2 then c - 4716 else c - 4715
-
-floor' :: (Num a, RealFrac a) => a -> a
-floor' = fromIntegral . floor
