@@ -1,23 +1,47 @@
-module Moon (moonPos) where
+module Moon (moonPos, sunPos, moonIlum) where
 
 import Data.Tuple.Curry
 
 import Util
 
--- so l' is mean longitude
+-- args order is lat long dist of moon, long dist of sun
+moonIlum b l d l0 r = (cosP, p, tanI, i, (1 + cos' i) / 2)
+    where cosP = cos' b * cos (l - l0)
+          p = acos' cosP
+          tanI = r*sin' p / (d - r*cos' p)
+          i = atan' tanI
+
+-- this is only accurate to a half minute of arc or so
+-- since it disregards gravitational effects outside sun/earth system
+-- l' and m same as below
+-- e is earth's eccentricity
+-- c is equation of center
+-- resulting in longitude in degrees and distance in au (converted to km)
+sunPos :: Double -> (Double, Double)
+sunPos jde = (simplA' (l' + c), 149598000*r)
+    where t = (jde - 2451545) / 36525
+          l' = 280.46645 + 36000.76983*t + 0.0003032*t^2
+          m = solarAnomaly t
+          e = 0.016708617 - 0.000042037*t - 0.0000001236*t^2
+          c = (1.914600 - 0.004817*t - 0.000014*t^2)*sin' m
+              + (0.019993 - 0.000101*t)*sin' (2*m)
+              + 0.00029*sin' (3*m)
+          r = 1.000001018*(1 - e^2) / (1 + e*cos' (m+c))
+
+-- l' is mean longitude
 -- d is mean elongation
 -- m is sun's mean anomoly
 -- m' is moon's mean anomoly
 -- f is moon's mean distance from ascending node
 -- and m must be scaled by e to take into account eccentricity of earth's orbit
 -- further corrections are made to the sums to account for action of venus and jupiter
--- returns longitude and latitude in degrees and distance in km
+-- returns latitude and longitude in degrees and distance in km
 moonPos :: Double -> (Double, Double, Double)
-moonPos jde = (l' + l/1000000, b/1000000, 385000.56 + r/1000)
+moonPos jde = (simplA' (b/1000000), simplA' (l' + l/1000000), 385000.56 + r/1000)
     where t = (jde - 2451545) / 36525
           l' = 218.3164591 + 481267.88134236*t - 0.0013268*t^2 + t^3/538841 - t^4/65194000
           d = 297.8502042 + 445267.1115168*t - 0.00163*t^2 + t^3/545868 - t^4/113065000
-          m = 357.5291092 + 35999.0502909*t - 0.0001536*t^2 + t^3/24490000
+          m = solarAnomaly t
           m' = 134.9634114 + 477198.8676313*t + 0.0089970*t^2 + t^3/69699 - t^4/14712000
           f = 93.2720993 + 483202.0175273*t - 0.0034029*t^2 -t^3/3526000 + t^4/863310000
           a1 = 119.75 + 131.849*t
@@ -39,6 +63,9 @@ computeTerm w t d m m' f cd cm cm' cf c
     | otherwise = s
         where e = 1 - 0.002516*t - 0.0000074*t^2
               s = c * w (cd*d + cm*m + cm'*m' + cf*f)
+
+solarAnomaly :: Double -> Double
+solarAnomaly t = 357.5291092 + 35999.0502909*t - 0.0001536*t^2 + t^3/24490000
 
 longTermCoeffs :: [(Double, Double, Double, Double, Double)]
 distTermCoeffs :: [(Double, Double, Double, Double, Double)]

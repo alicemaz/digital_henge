@@ -1,4 +1,4 @@
-module Util (rad, deg, sin', cos', floor', jdToDate, dateToJD, deltaT) where
+module Util (rad, deg, sin', cos', tan', asin', acos', atan', simplA', floor', jdToDate, dateToJD, deltaT) where
 
 import Data.List
 import Control.Lens.Operators
@@ -12,12 +12,29 @@ deg :: Floating a => a -> a
 deg x = x / pi * 180
 
 sin' :: Floating a => a -> a
-sin' = sin . rad
-
 cos' :: Floating a => a -> a
-cos' = cos . rad
+tan' :: Floating a => a -> a
 
-floor' :: (Num a, RealFrac a) => a -> a
+sin' = sin . rad
+cos' = cos . rad
+tan' = tan . rad
+
+asin' :: Floating a => a -> a
+acos' :: Floating a => a -> a
+atan' :: Floating a => a -> a
+
+asin' = deg . asin
+acos' = deg . acos
+atan' = deg . atan
+
+simplA' :: RealFrac a => a -> a
+simplA' a
+    | a < 0 = a + n
+    | a > 360 = a - n
+    | otherwise = a
+        where n = fromIntegral $ 360 * (abs $ floor $ a / 360)
+
+floor' :: RealFrac a => a -> a
 floor' = fromIntegral . floor
 
 jdToDate :: (RealFrac a, Integral b) => a -> (b, b, a)
@@ -44,6 +61,7 @@ dateToJD y m d = floor' (365.25*(y'+4716)) + floor' (30.6001*(m'+1)) + d + b - 1
 -- "general" polynomials covering multiple centuries often wrong by several dozen seconds
 -- not gonna bother implementing beyond the range I need
 -- full list at https://eclipse.gsfc.nasa.gov/LEcat5/deltatpoly.html
+-- remember JDE = JD + dT == JD = JDE - dT
 deltaTParams :: (Ord a, Fractional a) => [(a -> Bool, a -> a, a -> a)]
 deltaTParams =
  [
