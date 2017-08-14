@@ -1,4 +1,4 @@
-module Util (rad, deg, sin', cos', tan', asin', acos', atan', simplA', floor', jdToDate, dateToJD, deltaT) where
+module Util (rad, deg, sin', cos', tan', asin', acos', atan', atan2', simplA', floor', jdToDate, dateToJD, deltaT) where
 
 import Data.List
 import Control.Lens.Operators
@@ -22,10 +22,12 @@ tan' = tan . rad
 asin' :: Floating a => a -> a
 acos' :: Floating a => a -> a
 atan' :: Floating a => a -> a
+atan2' :: RealFloat a => a -> a -> a
 
 asin' = deg . asin
 acos' = deg . acos
 atan' = deg . atan
+atan2' n d = deg $ atan2 n d
 
 simplA' :: RealFrac a => a -> a
 simplA' a

@@ -1,15 +1,17 @@
-module Moon (moonPos, sunPos, moonIlum) where
+module Moon where --(moonPos, sunPos, moonIlum) where
 
 import Data.Tuple.Curry
 
 import Util
 
+import Debug.Trace
+
 -- args order is lat long dist of moon, long dist of sun
-moonIlum b l d l0 r = (cosP, p, tanI, i, (1 + cos' i) / 2)
+moonIlum b l d l0 r = (cosP, p, (x,y), i, (1 + cos' i) / 2)
     where cosP = cos' b * cos (l - l0)
           p = acos' cosP
-          tanI = r*sin' p / (d - r*cos' p)
-          i = atan' tanI
+          (x,y) = (r*sin' p, d - r*cos' p)
+          i = atan2' x y
 
 -- this is only accurate to a half minute of arc or so
 -- since it disregards gravitational effects outside sun/earth system
@@ -20,7 +22,7 @@ moonIlum b l d l0 r = (cosP, p, tanI, i, (1 + cos' i) / 2)
 sunPos :: Double -> (Double, Double)
 sunPos jde = (simplA' (l' + c), 149598000*r)
     where t = (jde - 2451545) / 36525
-          l' = 280.46645 + 36000.76983*t + 0.0003032*t^2
+          l' = sunMeanLong t
           m = solarAnomaly t
           e = 0.016708617 - 0.000042037*t - 0.0000001236*t^2
           c = (1.914600 - 0.004817*t - 0.000014*t^2)*sin' m
@@ -33,13 +35,13 @@ sunPos jde = (simplA' (l' + c), 149598000*r)
 -- m is sun's mean anomoly
 -- m' is moon's mean anomoly
 -- f is moon's mean distance from ascending node
--- and m must be scaled by e to take into account eccentricity of earth's orbit
+-- and each m must be scaled to take into account eccentricity of earth's orbit
 -- further corrections are made to the sums to account for action of venus and jupiter
--- returns latitude and longitude in degrees and distance in km
+-- produces latitude and longitude in degrees and distance in km
 moonPos :: Double -> (Double, Double, Double)
-moonPos jde = (simplA' (b/1000000), simplA' (l' + l/1000000), 385000.56 + r/1000)
+moonPos jde = (lat, long, dist) -- (asc, decl, dist)
     where t = (jde - 2451545) / 36525
-          l' = 218.3164591 + 481267.88134236*t - 0.0013268*t^2 + t^3/538841 - t^4/65194000
+          l' = moonMeanLong t
           d = 297.8502042 + 445267.1115168*t - 0.00163*t^2 + t^3/545868 - t^4/113065000
           m = solarAnomaly t
           m' = 134.9634114 + 477198.8676313*t + 0.0089970*t^2 + t^3/69699 - t^4/14712000
@@ -53,8 +55,56 @@ moonPos jde = (simplA' (b/1000000), simplA' (l' + l/1000000), 385000.56 + r/1000
           b = sum bs - 2235*sin' l' + 382*sin' a3 + 175*sin' (a1 - f) + 175*sin' (a1 + f)
               + 127*sin' (l' - m') - 115*sin' (l' + m')
           r = sum $ (uncurryN $ computeTerm cos' t d m m' f) <$> distTermCoeffs
+          lat = b / 1000000
+          long = l' + l/1000000
+          dist = 385000.56 + r/1000
+          (e, dP) = trace (show $ obliqNutation t) (obliqNutation t)
+          appLong = simplA' $ long + dP
+          (asc, decl) = ascDecl lat appLong e
 
---lol
+-- uhhhh ok so wtf n ch45 I need little alpha (right ascension, 12.3) little delta (declination, 12.4)
+-- and there is a formula for little epsilon, "true obliquity of the eliptic" referencing ch21
+-- formulas in 12 depend on lambda little epsilon beta
+-- 12.3: tan alp = sin Lam cos eps - tan Bet sin eps all over cos Lam
+-- 12.4: sin del = sin Bet cos eps + cos Bet sin eps sin Lam
+-- 21.3: e0 = 23.43929 - 0.01300417*u - 1.55*u^2 + 1999.25*u^3 - 51.38*u^4 - 249.67*u^5
+--            - 39.05*u^6 + 7.12*u^7 + 27.87*u^8 + 5.79*u^9 + 2.45*u^10
+-- where u is units of 10000 julian centuries u=t/100
+-- and then eps (true obliquity) is eps0 + del eps where delta epsilon is the nutation in obliquity
+-- del eps (simplified version) is 0.002555556*cos om + 0.0001583333 cos 2*L + 0.00002777778 cos 2*L' - 0.000025 cos 2*om
+-- where omega is longitude of the ascending node on the ecliptic:
+-- om = 125.04452 - 1934.136261*t
+-- L and L' are mean solar and lunar longitude respectively, l' in both sunPos and moonPos
+-- so true obliquity depends on t, both l primes and omega (all functions of t)
+-- and lambda and beta I should already have
+-- oh also need nutation in longitude, delta psi
+-- which is
+
+-- right ascension and declination, function of lat long and true obliquity
+ascDecl b l e = (a, d)
+    where a = atan2' (sin' l*cos' e - tan' b*sin' e) (cos' l)
+          d = asin' $ sin' b*cos' e + cos' b*sin' e*sin' l
+
+-- true ecliptic obliquity (little epsilon) and nutation in longitude (delta psi)
+--obliqNutation :: Double -> (Double, Double)
+obliqNutation t = (e0 + dE, dP)
+    where u = t/100
+          e0 = 23.43929 - 0.01300417*u - 1.55*u^2 + 1999.25*u^3 - 51.38*u^4 - 249.67*u^5
+               - 39.05*u^6 + 7.12*u^7 + 27.87*u^8 + 5.79*u^9 + 2.45*u^10
+          o = 125.04452 - 1934.136261*t
+          lm = moonMeanLong t
+          ls = sunMeanLong t
+          dE = 0.002555556*cos' o + 0.0001583333*cos' (2*ls) + 0.00002777778*cos' (2*lm) - 0.000025*cos' (2*o)
+          dP = -0.004777778*cos' o - 0.0003666667*sin' (2*ls) - 0.0000638889*sin (2*lm) - 0.00005833333*cos' (2*o)
+
+sunMeanLong t = 280.46645 + 36000.76983*t + 0.0003032*t^2
+
+moonMeanLong t = 218.3164591 + 481267.88134236*t - 0.0013268*t^2 + t^3/538841 - t^4/65194000
+
+solarAnomaly :: Double -> Double
+solarAnomaly t = 357.5291092 + 35999.0502909*t - 0.0001536*t^2 + t^3/24490000
+
+-- computes a term of the three sums giving moon's geometric lat/long and distance
 computeTerm :: (Double -> Double) -> Double -> Double -> Double -> Double ->
     Double -> Double -> Double -> Double -> Double -> Double -> Double
 computeTerm w t d m m' f cd cm cm' cf c
@@ -63,9 +113,6 @@ computeTerm w t d m m' f cd cm cm' cf c
     | otherwise = s
         where e = 1 - 0.002516*t - 0.0000074*t^2
               s = c * w (cd*d + cm*m + cm'*m' + cf*f)
-
-solarAnomaly :: Double -> Double
-solarAnomaly t = 357.5291092 + 35999.0502909*t - 0.0001536*t^2 + t^3/24490000
 
 longTermCoeffs :: [(Double, Double, Double, Double, Double)]
 distTermCoeffs :: [(Double, Double, Double, Double, Double)]
