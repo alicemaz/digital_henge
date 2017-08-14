@@ -7,10 +7,12 @@ import Util
 import Debug.Trace
 
 -- args order is lat long dist of moon, long dist of sun
-moonIlum b l d l0 r = (cosP, p, (x,y), i, (1 + cos' i) / 2)
-    where cosP = cos' b * cos (l - l0)
+moonIlum a d del a0 d0 r = (cosP, p, (x,y), i, (1 + cos' i) / 2)
+    --where cosP = cos' b * cos (l - l0)
+    --      p = acos' cosP
+    where cosP = sin' d0*sin' d + cos' d0*cos' d*cos' (a0 - a)
           p = acos' cosP
-          (x,y) = (r*sin' p, d - r*cos' p)
+          (x,y) = (r*sin' p, del - r*cos' p)
           i = atan2' x y
 
 -- this is only accurate to a half minute of arc or so
@@ -39,7 +41,7 @@ sunPos jde = (simplA' (l' + c), 149598000*r)
 -- further corrections are made to the sums to account for action of venus and jupiter
 -- produces latitude and longitude in degrees and distance in km
 moonPos :: Double -> (Double, Double, Double)
-moonPos jde = (lat, long, dist) -- (asc, decl, dist)
+moonPos jde = (asc, decl, dist)
     where t = (jde - 2451545) / 36525
           l' = moonMeanLong t
           d = 297.8502042 + 445267.1115168*t - 0.00163*t^2 + t^3/545868 - t^4/113065000
