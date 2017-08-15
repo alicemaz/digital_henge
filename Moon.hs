@@ -1,36 +1,39 @@
 module Moon where --(moonPos, sunPos, moonIlum) where
 
 import Data.Tuple.Curry
+import Control.Lens.Operators
+import Control.Lens.Tuple
 
 import Util
 
-import Debug.Trace
-
--- args order is lat long dist of moon, long dist of sun
-moonIlum a d del a0 d0 r = (cosP, p, (x,y), i, (1 + cos' i) / 2)
-    --where cosP = cos' b * cos (l - l0)
-    --      p = acos' cosP
-    where cosP = sin' d0*sin' d + cos' d0*cos' d*cos' (a0 - a)
-          p = acos' cosP
-          (x,y) = (r*sin' p, del - r*cos' p)
-          i = atan2' x y
+-- args order is asc decl dist of moon, asc decl dist of sun
+moonIlum :: RealFloat a => a -> a -> a -> a -> a -> a -> a
+moonIlum a d del a0 d0 r = (1 + cos' i) / 2
+    where p = acos' $ sin' d0*sin' d + cos' d0*cos' d*cos' (a0 - a)
+          i = atan2' (r*sin' p) (del - r*cos' p)
 
 -- this is only accurate to a half minute of arc or so
 -- since it disregards gravitational effects outside sun/earth system
 -- l' and m same as below
--- e is earth's eccentricity
+-- e' is earth's eccentricity
 -- c is equation of center
--- resulting in longitude in degrees and distance in au (converted to km)
-sunPos :: Double -> (Double, Double)
-sunPos jde = (simplA' (l' + c), 149598000*r)
+-- resulting in longitude in degrees and distance in au
+-- converts to apparent right ascension and declination, and distance to km
+-- since the sun's latitude is never more than a second or two of arc, we take it at 0 for simplicity
+--sunPos :: Double -> (Double, Double, Double)
+sunPos :: RealFloat a => a -> (a, a, a)
+sunPos jde = (atan2' (cos' e*sin' l) (cos' l), asin' $ sin' e*sin' l, 149598000*r)
     where t = (jde - 2451545) / 36525
           l' = sunMeanLong t
           m = solarAnomaly t
-          e = 0.016708617 - 0.000042037*t - 0.0000001236*t^2
+          e' = 0.016708617 - 0.000042037*t - 0.0000001236*t^2
           c = (1.914600 - 0.004817*t - 0.000014*t^2)*sin' m
               + (0.019993 - 0.000101*t)*sin' (2*m)
               + 0.00029*sin' (3*m)
-          r = 1.000001018*(1 - e^2) / (1 + e*cos' (m+c))
+          r = 1.000001018*(1 - e'^2) / (1 + e'*cos' (m+c))
+          o = 125.04 - 1934.136*t
+          l = l' + c - 0.00569 - 0.00478*sin' o
+          e = (obliqNutation t ^. _1) + 0.00256*cos' o
 
 -- l' is mean longitude
 -- d is mean elongation
@@ -39,7 +42,8 @@ sunPos jde = (simplA' (l' + c), 149598000*r)
 -- f is moon's mean distance from ascending node
 -- and each m must be scaled to take into account eccentricity of earth's orbit
 -- further corrections are made to the sums to account for action of venus and jupiter
--- produces latitude and longitude in degrees and distance in km
+-- produces geometric latitude and longitude in degrees and distance in km
+-- again converted from ecliptic and returned as apparent equitoral asc/decl
 moonPos :: Double -> (Double, Double, Double)
 moonPos jde = (asc, decl, dist)
     where t = (jde - 2451545) / 36525
@@ -60,35 +64,18 @@ moonPos jde = (asc, decl, dist)
           lat = b / 1000000
           long = l' + l/1000000
           dist = 385000.56 + r/1000
-          (e, dP) = trace (show $ obliqNutation t) (obliqNutation t)
+          (e, dP) = obliqNutation t
           appLong = simplA' $ long + dP
           (asc, decl) = ascDecl lat appLong e
 
--- uhhhh ok so wtf n ch45 I need little alpha (right ascension, 12.3) little delta (declination, 12.4)
--- and there is a formula for little epsilon, "true obliquity of the eliptic" referencing ch21
--- formulas in 12 depend on lambda little epsilon beta
--- 12.3: tan alp = sin Lam cos eps - tan Bet sin eps all over cos Lam
--- 12.4: sin del = sin Bet cos eps + cos Bet sin eps sin Lam
--- 21.3: e0 = 23.43929 - 0.01300417*u - 1.55*u^2 + 1999.25*u^3 - 51.38*u^4 - 249.67*u^5
---            - 39.05*u^6 + 7.12*u^7 + 27.87*u^8 + 5.79*u^9 + 2.45*u^10
--- where u is units of 10000 julian centuries u=t/100
--- and then eps (true obliquity) is eps0 + del eps where delta epsilon is the nutation in obliquity
--- del eps (simplified version) is 0.002555556*cos om + 0.0001583333 cos 2*L + 0.00002777778 cos 2*L' - 0.000025 cos 2*om
--- where omega is longitude of the ascending node on the ecliptic:
--- om = 125.04452 - 1934.136261*t
--- L and L' are mean solar and lunar longitude respectively, l' in both sunPos and moonPos
--- so true obliquity depends on t, both l primes and omega (all functions of t)
--- and lambda and beta I should already have
--- oh also need nutation in longitude, delta psi
--- which is
-
 -- right ascension and declination, function of lat long and true obliquity
+ascDecl :: RealFloat a => a -> a -> a -> (a, a)
 ascDecl b l e = (a, d)
     where a = atan2' (sin' l*cos' e - tan' b*sin' e) (cos' l)
           d = asin' $ sin' b*cos' e + cos' b*sin' e*sin' l
 
 -- true ecliptic obliquity (little epsilon) and nutation in longitude (delta psi)
---obliqNutation :: Double -> (Double, Double)
+obliqNutation :: Floating a => a -> (a, a)
 obliqNutation t = (e0 + dE, dP)
     where u = t/100
           e0 = 23.43929 - 0.01300417*u - 1.55*u^2 + 1999.25*u^3 - 51.38*u^4 - 249.67*u^5
@@ -99,16 +86,17 @@ obliqNutation t = (e0 + dE, dP)
           dE = 0.002555556*cos' o + 0.0001583333*cos' (2*ls) + 0.00002777778*cos' (2*lm) - 0.000025*cos' (2*o)
           dP = -0.004777778*cos' o - 0.0003666667*sin' (2*ls) - 0.0000638889*sin (2*lm) - 0.00005833333*cos' (2*o)
 
+sunMeanLong :: Fractional a => a -> a
 sunMeanLong t = 280.46645 + 36000.76983*t + 0.0003032*t^2
 
+moonMeanLong :: Fractional a => a -> a
 moonMeanLong t = 218.3164591 + 481267.88134236*t - 0.0013268*t^2 + t^3/538841 - t^4/65194000
 
-solarAnomaly :: Double -> Double
+solarAnomaly :: Fractional a => a -> a
 solarAnomaly t = 357.5291092 + 35999.0502909*t - 0.0001536*t^2 + t^3/24490000
 
 -- computes a term of the three sums giving moon's geometric lat/long and distance
-computeTerm :: (Double -> Double) -> Double -> Double -> Double -> Double ->
-    Double -> Double -> Double -> Double -> Double -> Double -> Double
+computeTerm :: (Fractional a, Eq a) => (a -> a) -> a -> a -> a -> a -> a -> a -> a -> a -> a -> a -> a
 computeTerm w t d m m' f cd cm cm' cf c
     | abs cm == 1 = e * s
     | abs cm == 2 = e^2 * s
