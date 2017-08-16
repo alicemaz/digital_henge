@@ -22,7 +22,7 @@ moonIlum a d del a0 d0 r = (1 + cos' i) / 2
 -- since the sun's latitude is never more than a second or two of arc, we take it at 0 for simplicity
 --sunPos :: Double -> (Double, Double, Double)
 sunPos :: RealFloat a => a -> (a, a, a)
-sunPos jde = (atan2' (cos' e*sin' l) (cos' l), asin' $ sin' e*sin' l, 149598000*r)
+sunPos jde = (asc, decl, 149598000*r)
     where t = (jde - 2451545) / 36525
           l' = sunMeanLong t
           m = solarAnomaly t
@@ -34,6 +34,7 @@ sunPos jde = (atan2' (cos' e*sin' l) (cos' l), asin' $ sin' e*sin' l, 149598000*
           o = 125.04 - 1934.136*t
           l = l' + c - 0.00569 - 0.00478*sin' o
           e = (obliqNutation t ^. _1) + 0.00256*cos' o
+          (asc, decl) = ascDecl 0 l e
 
 -- l' is mean longitude
 -- d is mean elongation
