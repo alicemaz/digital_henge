@@ -1,8 +1,28 @@
-module Emoji (sun, moon, earth) where
+module Types where
 
--- starts with new
-moon :: [String]
-moon =
+import Data.List
+
+-- associates emoji represntations with displayable events
+-- namely moon phase, equinox/solstice, eclipse, and zodiac
+class PrettyShow a where
+    prettyShow :: a -> String
+
+data SeasonType = Spring | Summer | Fall | Winter deriving (Show, Eq, Enum)
+
+instance PrettyShow SeasonType where
+    prettyShow = genericIndex seasons . fromEnum
+
+seasons :: [String]
+seasons =
+ [
+    "spr", -- earth ++ "\n" ++ sun,
+    "sum", -- earth ++ sun,
+    "fal", -- sun ++ "\n" ++ earth,
+    "wint" -- sun ++ earth
+ ]
+
+moonPhases :: [String]
+moonPhases =
  [
     "\xd83c\xdf11",
     "\xd83c\xdf12",

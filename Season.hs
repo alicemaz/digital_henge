@@ -3,24 +3,19 @@ module Season (checkSeason) where
 import Control.Lens.Operators
 import Control.Lens.Tuple
 
-import Emoji (sun, earth)
+import Types
 import Util
 
-data SeasonType = Spring | Summer | Fall | Winter deriving (Show, Eq)
-
--- lol I implement this algorithm with error measurable in seconds
--- and end up truncating the output to the day
--- I'd have to have a more complicated schedular than daily cron jobs
--- if I want to output it when it actually happens
-checkSeason :: Integral a => a -> a -> a -> Maybe String
+-- this is a little odd in that ymd are passed in with an integer day
+-- and d' formed from the output of computeSeason is a double
+-- so it pulls double (lol) duty in being used for both verifying the day and getting the time
+checkSeason :: Integral a => a -> a -> a -> Maybe (String, SeasonType)
 checkSeason y m d 
-    | m == 3 && f Spring = Just (earth ++ "\n" ++ sun)
-    | m == 6 && f Summer = Just (earth ++ sun)
-    | m == 9 && f Fall = Just (sun ++ "\n" ++ earth)
-    | m == 12 && f Winter = Just (sun ++ earth)
+    | m > 0 && m <= 12 && m `mod` 3 == 0 && floor d' == d = Just (jdToTimestring jde, s)
     | otherwise = Nothing
-        where dt = deltaT y
-              f s = ((jdToDate (computeSeason s y - dt)) ^. _3 & floor) == fromIntegral d
+        where s = toEnum $ fromIntegral $ m `div` 3 - 1
+              jde = computeSeason s y - deltaT y
+              (_, _, d') = jdToDate jde
 
 seasonTerms :: [(Double, Double, Double)]
 seasonTerms =
