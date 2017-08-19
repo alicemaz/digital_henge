@@ -2,6 +2,8 @@ module Main where
 
 import Data.List
 import Data.Maybe
+import System.IO
+import System.Process
 import System.Environment
 import System.Console.GetOpt
 
@@ -53,13 +55,16 @@ main :: IO ()
 main = do
     --argv <- getArgs
     --runmode <- processArgs argv
+    (Just hin, _, _, _) <- createProcess (proc "at" ["-t", "201708160007"]) { std_in = CreatePipe }
+    hPutStr hin "touch /tmp/lol3\n"
+    hClose hin
+
 {-
     let (y, m, d) = (1957, 10, 4.81)
     putStrLn $ "sputnik jd: " ++ show (dateToJD y m d)
     putStrLn $ "season: " ++ show (checkSeason 2021 3 20)
     putStrLn $ "zodiac: " ++ show (checkZodiac 2017 3 21)
     putStrLn $ "deltaT: " ++ show (deltaT 2050)
--}
     let jde = dateToJD 1992 4 12
         (ascM, declM, distM) = moonPos jde
         (ascS, declS, distS) = sunPos jde
@@ -72,7 +77,6 @@ main = do
     putStrLn $ "formtest2: " ++ show (ascDecl 6.684170 113.215630 23.4392911) -- from ex 12.a
     putStrLn $ "illumtest: " ++ show (moonIlum 134.6885 13.7684 368408 20.6579 8.6964 149971520)
     putStrLn $ "illum: " ++ show (moonIlum ascM declM distM ascS declS distS)
-{-
     putStrLn $ "cos p: " ++ show cp
     putStrLn $ "p: " ++ show p
     putStrLn $ "tan i: " ++ show ti
