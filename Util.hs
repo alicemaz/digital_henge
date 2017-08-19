@@ -1,9 +1,37 @@
-module Util (rad, deg, sin', cos', tan', asin', acos', atan', atan2', simplA', floor', jdToDate, dateToJD, deltaT) where
+{-# LANGUAGE ScopedTypeVariables #-}
+
+module Util (
+    rad,
+    deg,
+    sin',
+    cos',
+    tan',
+    asin',
+    acos',
+    atan',
+    atan2',
+    simplA',
+    floor',
+    jdToDate,
+    dateToJD,
+    dateToTimestring,
+    jdToTimestring,
+    deltaT
+) where
 
 import Data.List
+import Data.Tuple.Curry
+import Text.Printf
 import Control.Lens.Operators
 import Control.Lens.Tuple
 import Control.Lens.Traversal
+
+index :: Integral n => [a] -> n -> Maybe a
+index [] _ = Nothing
+index (x:xs) n
+    | n == 0 = Just x
+    | n < 0 = Nothing
+    | otherwise = index xs (n-1)
 
 rad :: Floating a => a -> a
 rad x = x / 180 * pi
@@ -57,6 +85,18 @@ dateToJD y m d = floor' (365.25*(y'+4716)) + floor' (30.6001*(m'+1)) + d + b - 1
     where (y', m') = (both %~ fromIntegral) $ if m > 2 then (y, m) else (y-1, m+12)
           a = floor' (y'/100)
           b = 2 - a + floor' (a/4)
+
+-- formatted for passing with -t to at(1)
+-- assuming d is a decimal, otherwise implicitly midnight
+dateToTimestring :: (RealFrac a, Integral b, PrintfArg b) => b -> b -> a -> String
+dateToTimestring y m d = printf "%04d" y ++ p m ++ f d ++ f h ++ f mi
+    where p = printf "%02d"
+          f = p . floor
+          h = 24 * properFraction d ^. _2
+          mi = 60 * properFraction h ^. _2
+
+jdToTimestring :: forall a. RealFrac a => a -> String
+jdToTimestring = uncurryN dateToTimestring . (jdToDate :: a -> (Integer, Integer, a))
 
 -- delta T is emperically determined, fluctuates unpredictably
 -- so short of copying historical values, the best way is to approximate small intervals
