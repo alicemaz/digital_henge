@@ -8,8 +8,8 @@ import System.Environment
 import System.Console.GetOpt
 
 import Types
-import Season
-import Zodiac
+import Season ()
+import Zodiac ()
 import Moon
 import Util
 
@@ -58,8 +58,6 @@ main = do
     --hClose hin
 
 {-
-    putStrLn $ "season: " ++ show (checkSeason 2021 3 20)
-    putStrLn $ "zodiac: " ++ show (checkZodiac 2017 3 21)
     putStrLn $ "deltaT: " ++ show (deltaT 2050)
     let jde = dateToJD 1992 4 12
         (ascM, declM, distM) = moonPos jde
