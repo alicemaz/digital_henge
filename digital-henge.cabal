@@ -26,3 +26,16 @@ executable henge
   -- hs-source-dirs:      
   default-language:    Haskell2010
   ghc-options:         -Wall -fno-warn-type-defaults
+
+Test-Suite henge_test
+  type:                exitcode-stdio-1.0
+  main-is:             Tests.hs
+  build-depends:       base >=4.9 && <4.10,
+                       lens == 4.15.*,
+                       tuple == 0.3.0.*,
+                       process == 1.6.1.*,
+                       test-framework == 0.8.1.*,
+                       test-framework-hunit == 0.3.0.*,
+                       HUnit == 1.6.0.*,
+                       HUnit-approx == 1.1.*
+  default-language:    Haskell2010
