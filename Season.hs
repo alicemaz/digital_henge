@@ -1,4 +1,4 @@
-module Season (checkSeason) where
+module Season (checkEvent) where
 
 import Control.Lens.Operators
 import Control.Lens.Tuple
@@ -6,16 +6,13 @@ import Control.Lens.Tuple
 import Types
 import Util
 
--- this is a little odd in that ymd are passed in with an integer day
--- and d' formed from the output of computeSeason is a double
--- so it pulls double (lol) duty in being used for both verifying the day and getting the time
-checkSeason :: Integral a => a -> a -> a -> Maybe (String, SeasonType)
-checkSeason y m d 
-    | m > 0 && m <= 12 && m `mod` 3 == 0 && floor d' == d = Just (jdToTimestring jde, s)
-    | otherwise = Nothing
-        where s = toEnum $ fromIntegral $ m `div` 3 - 1
-              jde = computeSeason s y - deltaT y
-              (_, _, d') = jdToDate jde
+instance CheckEvent Season where
+    checkEvent y m d
+        | m > 0 && m <= 12 && m `mod` 3 == 0 && floor d' == d = Event s (jdToTimestring jde)
+        | otherwise = Nil
+            where s = toEnum $ fromIntegral $ m `div` 3 - 1
+                  jde = computeSeason s y - deltaT y
+                  (_, _, d') = jdToDate jde
 
 seasonTerms :: [(Double, Double, Double)]
 seasonTerms =
@@ -30,14 +27,14 @@ seasonTerms =
     (12, 320.81, 34777.259), (9, 227.73, 1222.114), (8, 15.45, 16859.074)
  ]
 
-baseJDE :: SeasonType -> Double -> Double
+baseJDE :: Season -> Double -> Double
 baseJDE Spring y = 2451623.80984 + 365242.37404*y + 0.05169*y^2 - 0.00411*y^3 - 0.00057*y^4
 baseJDE Summer y = 2451716.56767 + 365241.62603*y + 0.00325*y^2 + 0.00888*y^3 - 0.00030*y^4
-baseJDE Fall y   = 2451810.21715 + 365242.01767*y - 0.11575*y^2 + 0.00337*y^3 + 0.00078*y^4
+baseJDE Autumn y = 2451810.21715 + 365242.01767*y - 0.11575*y^2 + 0.00337*y^3 + 0.00078*y^4
 baseJDE Winter y = 2451900.05952 + 365242.74049*y - 0.06223*y^2 - 0.00823*y^3 + 0.00032*y^4
 
 -- note this returns ephemeris time
-computeSeason :: Integral a => SeasonType -> a -> Double
+computeSeason :: Integral a => Season -> a -> Double
 computeSeason e y = j0 + 0.00001*s / dl
     where y' = (fromIntegral y - 2000) / 1000
           j0 = baseJDE e y'

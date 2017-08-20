@@ -127,6 +127,6 @@ deltaTParams =
  ]
 
 deltaT :: (Real a, Fractional b, Ord b) => a -> b
-deltaT y = (g . f) y'
+deltaT y = (g . f) y' / 86400
     where y' = fromRational $ toRational y
           Just (_, g, f) = find (\s -> (s ^. _1) y') deltaTParams
