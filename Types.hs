@@ -62,6 +62,14 @@ instance Enum Eclipse where
     toEnum 7 = Lunar Winter
     toEnum _ = undefined
 
+-- forgive me for my sins
+instance Eq (EventResult p) where
+    (==) = heq where
+        heq :: EventResult a -> EventResult b -> Bool
+        heq (Event a x) (Event b y) = show a == show b && x == y
+        heq Nil Nil = True
+        heq _ _ = False
+
 seasons :: [String]
 seasons =
  [
