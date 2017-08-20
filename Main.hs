@@ -7,18 +7,22 @@ import System.Process
 import System.Environment
 import System.Console.GetOpt
 
+import Types
 import Season
 import Zodiac
 import Moon
 import Util
 
 data Flag = Mode ModeType | Print deriving (Show, Eq)
-data ModeType = Moon | Eclipse | Season | Zodiac deriving (Show, Eq)
+data ModeType = Queue | OutputMoon Int | OutputEclipse Int | OutputSeason Int | OutputZodiac Int deriving (Show, Eq)
 type RunMode = (ModeType, Bool)
 
 isMode :: Flag -> Bool
 isMode (Mode _) = True
 isMode _ = False
+
+mkMode :: (Int -> ModeType) -> String -> Flag
+mkMode m = Mode . m . read
 
 header :: String
 header = "usage: henge [OPTIONS]"
@@ -26,11 +30,12 @@ header = "usage: henge [OPTIONS]"
 options :: [OptDescr Flag]
 options =
  [
-    Option ['m'] ["moon"] (NoArg (Mode Moon)) "moon phase",
-    Option ['e'] ["eclipse"] (NoArg (Mode Eclipse)) "eclipse",
-    Option ['s'] ["season"] (NoArg (Mode Season)) "solstices/equinoxes",
-    Option ['z'] ["zodiac"] (NoArg (Mode Zodiac)) "zodiac sign",
-    Option ['p'] ["print"] (NoArg Print) "don't tweet, print to stdout"
+    Option ['q'] [] (NoArg (Mode Queue)) "queue events for next day",
+    Option ['m'] [] (ReqArg (mkMode OutputMoon) "INT") "output moon phase",
+    Option ['e'] [] (ReqArg (mkMode OutputEclipse) "INT") "output eclipse",
+    Option ['s'] [] (ReqArg (mkMode OutputSeason) "INT") "output solstice/equinox",
+    Option ['z'] [] (ReqArg (mkMode OutputZodiac) "INT") "output zodiac sign",
+    Option ['p'] [] (NoArg Print) "don't tweet, print to stdout"
  ]
 
 processArgs :: [String] -> IO RunMode
@@ -42,26 +47,17 @@ processArgs argv = case getOpt Permute options argv of
                             p = isJust $ find (== Print) o
     (_, _, e) -> ioError $ userError $ concat e ++ usageInfo header options
 
--- TODO XXX sun pos and moon illum obv
--- but also I need to calc delta t and translate between jd and jde
--- uhh so my two cases so far are... moonPos starts from JDE and returns coords
--- eventually I used those for illuminated fraction
--- but the input will eventually be ymd so I need to convert that to JD and then add dT
--- as for season, input is ymd... but I determine season by month and just compare day
--- so time doesn't actually matter, for correctness tho compute returns JDE so I want to subtract dT
--- in other words I should just use year, I have it onhand in both cases
--- ok so for moon I need longitudes of sun and moon, latitude of moon, both distances
 main :: IO ()
 main = do
     --argv <- getArgs
     --runmode <- processArgs argv
-    (Just hin, _, _, _) <- createProcess (proc "at" ["-t", "201708160007"]) { std_in = CreatePipe }
-    hPutStr hin "touch /tmp/lol3\n"
-    hClose hin
+    --putStrLn $ show runmode
+
+    --(Just hin, _, _, _) <- createProcess (proc "at" ["-t", "201708160007"]) { std_in = CreatePipe }
+    --hPutStr hin "touch /tmp/lol3\n"
+    --hClose hin
 
 {-
-    let (y, m, d) = (1957, 10, 4.81)
-    putStrLn $ "sputnik jd: " ++ show (dateToJD y m d)
     putStrLn $ "season: " ++ show (checkSeason 2021 3 20)
     putStrLn $ "zodiac: " ++ show (checkZodiac 2017 3 21)
     putStrLn $ "deltaT: " ++ show (deltaT 2050)
@@ -83,3 +79,5 @@ main = do
     putStrLn $ "i: " ++ show i
     putStrLn $ "k: " ++ show k
 -}
+
+    pure ()
