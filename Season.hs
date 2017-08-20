@@ -1,7 +1,4 @@
-module Season (checkEvent) where
-
-import Control.Lens.Operators
-import Control.Lens.Tuple
+module Season () where
 
 import Types
 import Util

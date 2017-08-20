@@ -11,7 +11,7 @@ class DisplayEvent a where
 
 -- given ymd returns event result
 class CheckEvent p where
-    checkEvent :: Integral b => b -> b -> b -> EventResult p
+    checkEvent :: Integral a => a -> a -> a -> EventResult p
 
 -- maybe-alike, either event specifier and timestring, or nil
 data EventResult p = forall a. (CheckEvent a, Show a) => Event a String | Nil
