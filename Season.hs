@@ -5,7 +5,7 @@ import Util
 
 instance CheckEvent Season where
     checkEvent y m d
-        | m > 0 && m <= 12 && m `mod` 3 == 0 && floor d' == d = Event s (jdToTimestring jde)
+        | m > 0 && m <= 12 && m `mod` 3 == 0 && floor d' == d = Event s (jdToTimestring jd)
         | otherwise = Nil
             where s = toEnum $ fromIntegral $ m `div` 3 - 1
                   jd = computeSeason s y - deltaT y
