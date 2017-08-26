@@ -8,8 +8,8 @@ instance CheckEvent Season where
         | m > 0 && m <= 12 && m `mod` 3 == 0 && floor d' == d = Event s (jdToTimestring jde)
         | otherwise = Nil
             where s = toEnum $ fromIntegral $ m `div` 3 - 1
-                  jde = computeSeason s y - deltaT y
-                  (_, _, d') = jdToDate jde
+                  jd = computeSeason s y - deltaT y
+                  (_, _, d') = jdToDate jd
 
 seasonTerms :: [(Double, Double, Double)]
 seasonTerms =
