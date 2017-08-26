@@ -1,14 +1,58 @@
-module Moon where --(moonPos, sunPos, moonIlum) where
+module Moon () where
 
+import GHC.Exts
 import Data.Tuple.Curry
 import Control.Lens.Operators
 import Control.Lens.Tuple
 
+import Types
 import Util
 
+-- basically just generate illumination for every minute of the interval
+-- for full/new if it crosses the target it reverses direction
+-- so we just take time at max/min
+-- for other phases if it crosses, we take the closest to the target
+-- otherwise there is no phase point in the interval
+instance CheckEvent Moon where
+    checkEvent y m d = checkPhase ival
+        where jds = (dateToJD y m . (+fromIntegral d) . (/1440)) <$> [0..1439]
+              ival = zip (moonIllum . (+deltaT y) <$> jds) jds
+
+-- note "tMin"/"tMax" mean the time corresponding to min/max i
+-- actual min/max t are always t0/tN because... that's how time works
+checkPhase :: (Ord a, Fractional a, RealFrac b) => [(a, b)] -> EventResult Moon
+checkPhase ival
+    | i0 < 0.25 && 0.25 < iN = Event WaxingCrescent $ f 0.25
+    | iN < 0.25 && 0.25 < i0 = Event WaningCrescent $ f 0.25
+    | i0 < 0.75 && 0.75 < iN = Event WaxingGibbous  $ f 0.75
+    | iN < 0.75 && 0.75 < i0 = Event WaningGibbous  $ f 0.75
+    | i0 < 0.50 && 0.50 < iN = Event FirstQuarter   $ f 0.50
+    | iN < 0.50 && 0.50 < i0 = Event ThirdQuarter   $ f 0.50
+    | iMin < i0 && iMin < iN = Event New (jdToTimestring tMin)
+    | iMax > i0 && iMax > iN = Event Full (jdToTimestring tMax)
+    | otherwise = Nil
+        where (i0, _) = head ival
+              (iN, _) = last ival
+              (iMin, tMin) = foldr1 min ival
+              (iMax, tMax) = foldr1 max ival
+              f = findPhaseChange ival
+
+findPhaseChange :: (Ord a, Num a, RealFrac b) => [(a, b)] -> a -> String
+findPhaseChange ival t = head (sortWith (\(i, _) -> abs (i - t)) ival) ^. _2 & jdToTimestring
+
+-- I really wanted this to be constrained by RealFloat or smth
+-- but monomorphism restriction I guess is screwing me somewhere
+-- tried changing all "Double" types below and still couldn't unify
+-- also our margin of error appears to be about a half hour
+-- probably because I got lazy with the obliquity calculations
+moonIllum :: Double -> Double
+moonIllum jde = moonIllum' a d del a0 d0 r
+    where (a, d, del) = moonPos jde
+          (a0, d0, r) = sunPos jde
+
 -- args order is asc decl dist of moon, asc decl dist of sun
-moonIlum :: RealFloat a => a -> a -> a -> a -> a -> a -> a
-moonIlum a d del a0 d0 r = (1 + cos' i) / 2
+moonIllum' :: RealFloat a => a -> a -> a -> a -> a -> a -> a
+moonIllum' a d del a0 d0 r = (1 + cos' i) / 2
     where p = acos' $ sin' d0*sin' d + cos' d0*cos' d*cos' (a0 - a)
           i = atan2' (r*sin' p) (del - r*cos' p)
 
@@ -45,6 +89,7 @@ sunPos jde = (asc, decl, 149598000*r)
 -- further corrections are made to the sums to account for action of venus and jupiter
 -- produces geometric latitude and longitude in degrees and distance in km
 -- again converted from ecliptic and returned as apparent equitoral asc/decl
+--moonPos :: RealFloat a => a -> (a, a, a)
 moonPos :: Double -> (Double, Double, Double)
 moonPos jde = (asc, decl, dist)
     where t = (jde - 2451545) / 36525
