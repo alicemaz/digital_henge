@@ -13,6 +13,10 @@ class DisplayEvent a where
 class CheckEvent p where
     checkEvent :: Integral a => a -> a -> a -> EventResult p
 
+-- extremely rude
+class SemiEq a where
+    (=~) :: a -> a -> Bool
+
 -- maybe-alike, either event specifier and timestring, or nil
 data EventResult p = forall a. (CheckEvent a, Show a) => Event a String | Nil
 deriving instance Show (EventResult p)
@@ -66,7 +70,14 @@ instance Enum Eclipse where
 instance Eq (EventResult p) where
     (==) = heq where
         heq :: EventResult a -> EventResult b -> Bool
-        heq (Event a x) (Event b y) = show a == show b && x == y
+        heq (Event i x) (Event j y) = show i == show j && x == y
+        heq Nil Nil = True
+        heq _ _ = False
+
+instance SemiEq (EventResult p) where
+    (=~) = heq where
+        heq :: EventResult a -> EventResult b -> Bool
+        heq (Event i _) (Event j _) = show i == show j
         heq Nil Nil = True
         heq _ _ = False
 
