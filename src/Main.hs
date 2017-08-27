@@ -16,6 +16,12 @@ import Zodiac ()
 import Moon ()
 import Tweet
 
+runpath :: String
+runpath = "/usr/local/haskell/digital-henge/dist/build/henge/henge"
+
+header :: String
+header = "usage: henge [OPTIONS]"
+
 data Flag = Mode ModeType | Print | TZ deriving (Show, Eq)
 data ModeType = Queue | Output OutputType deriving (Show, Eq)
 data OutputType = Moon Int | Eclipse Int | Season Int | Zodiac Int deriving (Show, Eq)
@@ -27,9 +33,6 @@ isMode _ = False
 
 mkMode :: (Int -> OutputType) -> String -> Flag
 mkMode e = Mode . Output . e . read
-
-header :: String
-header = "usage: henge [OPTIONS]"
 
 options :: [OptDescr Flag]
 options =
@@ -70,7 +73,7 @@ scheduleEvents :: [(String, String, String)] -> IO ()
 scheduleEvents [] = pure ()
 scheduleEvents ((f, i, t):es) = do
     (Just hin, _, _, _) <- createProcess (proc "at" ["-t", t]) { std_in = CreatePipe }
-    hPutStr hin $ "henge " ++ f ++ " " ++ i
+    hPutStr hin $ intercalate " " [runpath, f, i]
     hClose hin
     scheduleEvents es
 
