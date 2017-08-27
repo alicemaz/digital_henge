@@ -13,12 +13,17 @@ class DisplayEvent a where
 class CheckEvent p where
     checkEvent :: Integral a => a -> a -> a -> EventResult p
 
+-- given event result returns args for at(1)
+-- in order of event flag, enum index, timestring
+class ReifyEvent p where
+    reifyEvent :: EventResult p -> Maybe (String, String, String)
+
 -- extremely rude
 class SemiEq a where
     (=~) :: a -> a -> Bool
 
 -- maybe-alike, either event specifier and timestring, or nil
-data EventResult p = forall a. (CheckEvent a, Show a) => Event a String | Nil
+data EventResult p = forall a. (CheckEvent a, Show a, Enum a) => Event a String | Nil
 deriving instance Show (EventResult p)
 
 -- event specifiers
@@ -50,6 +55,23 @@ instance DisplayEvent Zodiac where
 
 instance DisplayEvent Moon where
     displayEvent = genericIndex moonPhases . fromEnum
+
+-- mappings for commandline
+instance ReifyEvent Season where
+    reifyEvent (Event e t) = Just ("-s", show $ fromEnum e, t)
+    reifyEvent Nil = Nothing
+
+instance ReifyEvent Eclipse where
+    reifyEvent (Event e t) = Just ("-e", show $ fromEnum e, t)
+    reifyEvent Nil = Nothing
+
+instance ReifyEvent Zodiac where
+    reifyEvent (Event e t) = Just ("-z", show $ fromEnum e, t)
+    reifyEvent Nil = Nothing
+
+instance ReifyEvent Moon where
+    reifyEvent (Event e t) = Just ("-m", show $ fromEnum e, t)
+    reifyEvent Nil = Nothing
 
 -- enum instance, since deriving an enum that contains an enum isn't supported
 -- I don't like using magic numbers but doubt the number of seasons will change anytime soon
