@@ -16,6 +16,5 @@ tweet :: String -> IO ()
 tweet s = do
     creds <- (mkCreds . BC.lines) <$> BC.readFile ".credentials"
     mgr <- newManager tlsManagerSettings
-    res <- call creds mgr $ update (T.pack s)
-    putStrLn $ show res
+    _ <- call creds mgr $ update (T.pack s)
     pure ()

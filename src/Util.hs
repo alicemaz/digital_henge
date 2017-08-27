@@ -26,13 +26,6 @@ import Control.Lens.Operators
 import Control.Lens.Tuple
 import Control.Lens.Traversal
 
-index :: Integral n => [a] -> n -> Maybe a
-index [] _ = Nothing
-index (x:xs) n
-    | n == 0 = Just x
-    | n < 0 = Nothing
-    | otherwise = index xs (n-1)
-
 rad :: Floating a => a -> a
 rad x = x / 180 * pi
 
