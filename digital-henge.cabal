@@ -20,10 +20,13 @@ executable henge
   -- other-modules:       
   -- other-extensions:    
   build-depends:       base >=4.9 && <4.10,
+                       time,
+                       text,
+                       bytestring,
                        lens == 4.15.*,
                        tuple == 0.3.0.*,
                        process == 1.6.1.*,
-                       time
+                       twitter-conduit == 0.2.2.*
   hs-source-dirs:      src
   default-language:    Haskell2010
   ghc-options:         -Wall -fno-warn-type-defaults -fno-warn-orphans
@@ -32,10 +35,10 @@ Test-Suite henge_test
   type:                exitcode-stdio-1.0
   main-is:             Tests.hs
   build-depends:       base >=4.9 && <4.10,
+                       time,
                        lens == 4.15.*,
                        tuple == 0.3.0.*,
                        process == 1.6.1.*,
-                       time,
                        test-framework == 0.8.1.*,
                        test-framework-hunit == 0.3.0.*,
                        HUnit == 1.6.0.*,

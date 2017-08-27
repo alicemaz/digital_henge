@@ -15,6 +15,7 @@ import Season ()
 import Zodiac ()
 import Moon ()
 import Util
+import Tweet
 
 data Flag = Mode ModeType | Print | TZ deriving (Show, Eq)
 data ModeType = Queue | Output OutputType deriving (Show, Eq)
@@ -76,13 +77,10 @@ scheduleEvents ((f, i, t):es) = do
     scheduleEvents es
 
 getOutput :: OutputType -> String
-getOutput (Season n) = show $ displayEvent (toEnum n :: Season)
-getOutput (Eclipse n) = show $ displayEvent (toEnum n :: Eclipse)
-getOutput (Zodiac n) = show $ displayEvent (toEnum n :: Zodiac)
-getOutput (Moon n) = show $ displayEvent (toEnum n :: Moon)
-
-tweet :: String -> IO ()
-tweet t = putStrLn $ "tweeting: " ++ t
+getOutput (Season n) = displayEvent (toEnum n :: Season)
+getOutput (Eclipse n) = displayEvent (toEnum n :: Eclipse)
+getOutput (Zodiac n) = displayEvent (toEnum n :: Zodiac)
+getOutput (Moon n) = displayEvent (toEnum n :: Moon)
 
 main :: IO ()
 main = do
@@ -98,8 +96,8 @@ main = do
     putStrLn $ show runmode
     case runmode of
         (Queue, _, _) -> queue
-        (Output m, False, _) -> tweet (getOutput m)
-        (Output m, True, _) -> putStrLn (getOutput m)
+        (Output m, False, _) -> tweet $ getOutput m
+        (Output m, True, _) -> putStrLn $ show $ getOutput m
 
 
 {-
