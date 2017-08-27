@@ -128,35 +128,35 @@ eclipses =
 zodiacSigns :: [String]
 zodiacSigns =
  [
-    "\x2648\xfe0f",
-    "\x2649\xfe0f",
-    "\x264a\xfe0f",
-    "\x264b\xfe0f",
-    "\x264c\xfe0f",
-    "\x264d\xfe0f",
-    "\x264e\xfe0f",
-    "\x264f\xfe0f",
-    "\x2650\xfe0f",
-    "\x2651\xfe0f",
-    "\x2652\xfe0f",
-    "\x2653\xfe0f"
+    "\x2648",
+    "\x2649",
+    "\x264a",
+    "\x264b",
+    "\x264c",
+    "\x264d",
+    "\x264e",
+    "\x264f",
+    "\x2650",
+    "\x2651",
+    "\x2652",
+    "\x2653"
  ]
 
 moonPhases :: [String]
 moonPhases =
  [
-    "\xd83c\xdf11",
-    "\xd83c\xdf12",
-    "\xd83c\xdf13",
-    "\xd83c\xdf14",
-    "\xd83c\xdf15",
-    "\xd83c\xdf16",
-    "\xd83c\xdf17",
-    "\xd83c\xdf18"
+    "\x1f311",
+    "\x1f312",
+    "\x1f313",
+    "\x1f314",
+    "\x1f315",
+    "\x1f316",
+    "\x1f317",
+    "\x1f318"
  ]
 
 sun :: String
-sun = "\x2600\xfe0f";
+sun = "\x2600";
 
 earth :: String
-earth = "\xd83c\xdf0e";
+earth = "\x1f30d";
