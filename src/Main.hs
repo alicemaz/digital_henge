@@ -56,7 +56,7 @@ processArgs argv = case getOpt Permute options argv of
 queue :: IO ()
 queue = do
     (y, m0, d0) <- (toGregorian . addDays 1 . utctDay) <$> getCurrentTime
-    let (m, d) = (fromIntegral m0, fromIntegral (d0 + 1))
+    let (m, d) = (fromIntegral m0, fromIntegral d0)
         events = catMaybes
          [
             reifyEvent (checkEvent y m d :: EventResult Season),
