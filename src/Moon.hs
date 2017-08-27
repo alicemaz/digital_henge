@@ -64,7 +64,6 @@ moonIllum' a d del a0 d0 r = (1 + cos' i) / 2
 -- resulting in longitude in degrees and distance in au
 -- converts to apparent right ascension and declination, and distance to km
 -- since the sun's latitude is never more than a second or two of arc, we take it at 0 for simplicity
---sunPos :: Double -> (Double, Double, Double)
 sunPos :: RealFloat a => a -> (a, a, a)
 sunPos jde = (asc, decl, 149598000*r)
     where t = (jde - 2451545) / 36525
