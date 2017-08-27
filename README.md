@@ -1,9 +1,8 @@
-#[@digital_henge](https://twitter.com/digital_henge)
+[@digital_henge](https://twitter.com/digital_henge)
+===
 
-She's only tweeted twice so far, but I really adore this lil bot. She tweets the moon phases roughly around the time they change, along with equinoxes, solstices, total and annular eclipses, and zodiac signs, exclusively in emoji. A quiet, mystical thing.
+tweets equinoxes, solstices, moon phases, zodiac signs, and (TODO) eclipses in minimal emoji representation. I'm rather fond of this one, in part because it was the first thing I'd made aside from dumb joke bots. a quiet, pretty thing
 
-I'm really looking forward to 3/20/15 when she gets to tweet an equinox *and* a solar eclipse.
+first version was in javascript, written three months after I'd started programming, with about the quality that would imply. moon phases were computed from a copy-pasted version of conway's "in your head" algorithm and often multiple days off. everything else was pulled from hand-compiled json arrays. initially I just had cron run it four times a day and what it checked/possibly tweeted was determined by a switchcase on whatever hour it happened to be
 
-Moon phases are calculated by John Conway's formula for them, rendered in js by Ben Daglish and found [here](http://www.ben-daglish.net/moon.shtml). Everything else it's just pulling from json files.
-
-I'm embarrassed by the terrible try_everything() method, the lowest-effort workaround for Heroku's hourly scheduling I could think of. I am not embarrassed enough yet, now that I'm running it with cron off a Raspberry Pi, to fix it.
+new version in haskell, literally because I wanted to keep the bot running but got sick of fighting with nodejs to build. most formulas taken from jean meeus's wonderful book "astronomical algorithms". delta t formulas taken from NASA. daily cron job schedules events for the next day using at, allowing them to be tweeted when they occur, rather than at a fixed time. moon phases are accurate to within a half hour or so (probably because I got lazy calculating obliquity and nutation). equinoxes and solstices are accurate to within a minute or two. UTC is used for both input and output (calculations themselves are generally done in terrestrial time) for sake of simplicity (since the server I run this on uses UTC... for sake of simplicity)
