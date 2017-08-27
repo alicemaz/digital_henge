@@ -3,6 +3,8 @@ module Main where
 import Data.List
 import Data.Maybe
 import Data.Time
+import Control.Lens.Operators
+import Control.Lens.Tuple
 import System.IO
 import System.Process
 import System.Environment
@@ -14,16 +16,17 @@ import Zodiac ()
 import Moon ()
 import Util
 
-data Flag = Mode ModeType | Print deriving (Show, Eq)
-data ModeType = Queue | OutputMoon Int | OutputEclipse Int | OutputSeason Int | OutputZodiac Int deriving (Show, Eq)
-type RunMode = (ModeType, Bool)
+data Flag = Mode ModeType | Print | TZ deriving (Show, Eq)
+data ModeType = Queue | Output OutputType deriving (Show, Eq)
+data OutputType = Moon Int | Eclipse Int | Season Int | Zodiac Int deriving (Show, Eq)
+type RunMode = (ModeType, Bool, Bool)
 
 isMode :: Flag -> Bool
 isMode (Mode _) = True
 isMode _ = False
 
-mkMode :: (Int -> ModeType) -> String -> Flag
-mkMode m = Mode . m . read
+mkMode :: (Int -> OutputType) -> String -> Flag
+mkMode e = Mode . Output . e . read
 
 header :: String
 header = "usage: henge [OPTIONS]"
@@ -32,20 +35,22 @@ options :: [OptDescr Flag]
 options =
  [
     Option ['q'] [] (NoArg (Mode Queue)) "queue events for next day",
-    Option ['s'] [] (ReqArg (mkMode OutputSeason) "INT") "output solstice/equinox",
-    Option ['e'] [] (ReqArg (mkMode OutputEclipse) "INT") "output eclipse",
-    Option ['z'] [] (ReqArg (mkMode OutputZodiac) "INT") "output zodiac sign",
-    Option ['m'] [] (ReqArg (mkMode OutputMoon) "INT") "output moon phase",
-    Option ['p'] [] (NoArg Print) "don't tweet, print to stdout"
+    Option ['s'] [] (ReqArg (mkMode Season) "INT") "output solstice/equinox",
+    Option ['e'] [] (ReqArg (mkMode Eclipse) "INT") "output eclipse",
+    Option ['z'] [] (ReqArg (mkMode Zodiac) "INT") "output zodiac sign",
+    Option ['m'] [] (ReqArg (mkMode Moon) "INT") "output moon phase",
+    Option ['p'] [] (NoArg Print) "don't tweet, print to stdout",
+    Option ['t'] [] (NoArg TZ) "ignore incorrect system timezone"
  ]
 
 processArgs :: [String] -> IO RunMode
 processArgs argv = case getOpt Permute options argv of
     (o, _, []) -> if (length . filter isMode) o == 1
-                  then pure (m, p)
+                  then pure (m, p, t)
                   else ioError $ userError $ "must specify one and only one mode\n" ++ usageInfo header options
                       where Just (Mode m) = find isMode o
                             p = isJust $ find (== Print) o
+                            t = isJust $ find (== TZ) o
     (_, _, e) -> ioError $ userError $ concat e ++ usageInfo header options
 
 queue :: IO ()
@@ -59,7 +64,8 @@ queue = do
             reifyEvent (checkEvent y m d :: EventResult Zodiac),
             reifyEvent (checkEvent y m d :: EventResult Moon)
          ]
-    scheduleEvents events
+    putStrLn $ show events
+    --scheduleEvents events
 
 scheduleEvents :: [(String, String, String)] -> IO ()
 scheduleEvents [] = pure ()
@@ -69,26 +75,31 @@ scheduleEvents ((f, i, t):es) = do
     hClose hin
     scheduleEvents es
 
-tweet :: ModeType -> IO ()
-tweet m = do
-    let text = case m of
-                   (OutputSeason n) -> show $ displayEvent (toEnum n :: Season)
-                   (OutputEclipse n) -> show $ displayEvent (toEnum n :: Eclipse)
-                   (OutputZodiac n) -> show $ displayEvent (toEnum n :: Zodiac)
-                   (OutputMoon n) -> show $ displayEvent (toEnum n :: Moon)
+getOutput :: OutputType -> String
+getOutput (Season n) = show $ displayEvent (toEnum n :: Season)
+getOutput (Eclipse n) = show $ displayEvent (toEnum n :: Eclipse)
+getOutput (Zodiac n) = show $ displayEvent (toEnum n :: Zodiac)
+getOutput (Moon n) = show $ displayEvent (toEnum n :: Moon)
 
-    putStrLn $ "tweeting: " ++ text
-    pure ()
+tweet :: String -> IO ()
+tweet t = putStrLn $ "tweeting: " ++ t
 
 main :: IO ()
 main = do
     runmode <- processArgs =<< getArgs
-    --tz <- getCurrentTimeZone
-    --_ <- if tz /= utc then hPutStrLn stderr "WARNING: by authorial fiat, system timezone should be UTC" else pure ()
 
+    -- I could fix this by injecting an option into toTimestring calls
+    -- but idc I'm only running it on one machine
+    tz <- getCurrentTimeZone
+    if not (runmode ^. _3) && tz /= utc
+    then ioError $ userError "by authorial fiat, system timezone must be UTC"
+    else pure ()
+
+    putStrLn $ show runmode
     case runmode of
-        (Queue, _) -> queue
-        (m, _) -> tweet m
+        (Queue, _, _) -> queue
+        (Output m, False, _) -> tweet (getOutput m)
+        (Output m, True, _) -> putStrLn (getOutput m)
 
 
 {-
