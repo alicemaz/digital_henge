@@ -17,7 +17,7 @@ import Moon ()
 import Tweet
 
 runcmd :: String
-runcmd = "cd /usr/local/haskell/digital-henge && stack exec henge --"
+runcmd = "stack exec henge --"
 
 header :: String
 header = "usage: henge [OPTIONS]"
