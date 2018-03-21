@@ -16,8 +16,8 @@ import Zodiac ()
 import Moon ()
 import Tweet
 
-runpath :: String
-runpath = "/usr/local/haskell/digital-henge/dist/build/henge/henge"
+runcmd :: String
+runcmd = "cd /usr/local/haskell/digital-henge && stack exec henge --"
 
 header :: String
 header = "usage: henge [OPTIONS]"
@@ -73,7 +73,7 @@ scheduleEvents :: [(String, String, String)] -> IO ()
 scheduleEvents [] = pure ()
 scheduleEvents ((f, i, t):es) = do
     (Just hin, _, _, _) <- createProcess (proc "at" ["-t", t]) { std_in = CreatePipe }
-    hPutStr hin $ intercalate " " [runpath, f, i]
+    hPutStr hin $ intercalate " " [runcmd, f, i]
     hClose hin
     scheduleEvents es
 
