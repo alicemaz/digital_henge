@@ -1,7 +1,5 @@
-dist/
-.cabal-sandbox/
-cabal.sandbox.config
 *~
 *.swp
 *.swo
+.stack-work/
 .credentials
